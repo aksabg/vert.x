@@ -58,11 +58,13 @@ public class Http2ServerRequest extends HttpServerRequestInternal implements Htt
   // Accessed on context thread
   private Charset paramsCharset = StandardCharsets.UTF_8;
   private MultiMap params;
+  private boolean semicolonIsNormalCharInParams;
   private String absoluteURI;
   private MultiMap attributes;
   private HttpEventHandler eventHandler;
   private boolean ended;
   private Handler<HttpServerFileUpload> uploadHandler;
+  private boolean expectMultipart;
   private HttpPostRequestDecoder postRequestDecoder;
   private Handler<HttpFrame> customFrameHandler;
   private Handler<StreamPriority> streamPriorityHandler;
@@ -360,10 +362,11 @@ public class Http2ServerRequest extends HttpServerRequestInternal implements Htt
     return paramsCharset.name();
   }
   @Override
-  public MultiMap params() {
+  public MultiMap params(boolean semicolonIsNormalChar) {
     synchronized (stream.conn) {
-      if (params == null) {
-        params = HttpUtils.params(uri(), paramsCharset);
+      if (params == null || semicolonIsNormalChar != semicolonIsNormalCharInParams) {
+        params = HttpUtils.params(uri(), paramsCharset, semicolonIsNormalChar);
+        semicolonIsNormalCharInParams = semicolonIsNormalChar;
       }
       return params;
     }
@@ -401,6 +404,7 @@ public class Http2ServerRequest extends HttpServerRequestInternal implements Htt
   public HttpServerRequest setExpectMultipart(boolean expect) {
     synchronized (stream.conn) {
       checkEnded();
+      expectMultipart = expect;
       if (expect) {
         if (postRequestDecoder == null) {
           String contentType = headersMap.get(HttpHeaderNames.CONTENT_TYPE);
@@ -435,7 +439,7 @@ public class Http2ServerRequest extends HttpServerRequestInternal implements Htt
   @Override
   public boolean isExpectMultipart() {
     synchronized (stream.conn) {
-      return postRequestDecoder != null;
+      return expectMultipart;
     }
   }
 

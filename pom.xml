@@ -20,7 +20,7 @@
   </parent>
 
   <artifactId>vertx-core</artifactId>
-  <version>4.5.7-SNAPSHOT</version>
+  <version>4.5.8-SNAPSHOT</version>
 
   <name>Vert.x Core</name>
 
@@ -48,7 +48,7 @@
     <assertj.version>3.4.1</assertj.version>
     <apacheds-protocol-dns.version>1.5.7</apacheds-protocol-dns.version>
     <generated.dir>${project.basedir}/src/main/generated</generated.dir>
-    <stack.version>4.5.7-SNAPSHOT</stack.version>
+    <stack.version>4.5.8-SNAPSHOT</stack.version>
     <jmh.version>1.36</jmh.version>
     <vertx.testNativeTransport>false</vertx.testNativeTransport>
     <vertx.testDomainSockets>false</vertx.testDomainSockets>
@@ -289,6 +289,26 @@
             <execution>
               <id>default-jar</id>
               <configuration>
+                <excludes>
+                  <exclude>/docoverride/**</exclude>
+                  <exclude>/examples/**</exclude>
+                  <exclude>META-INF/native-image/**</exclude>
+                </excludes>
+                <archive>
+                  <manifestEntries>
+                    <Multi-Release>true</Multi-Release>
+                  </manifestEntries>
+                </archive>
+              </configuration>
+            </execution>
+            <execution>
+              <id>native-image-jar</id>
+              <configuration>
+                <excludes>
+                  <exclude>/docoverride/**</exclude>
+                  <exclude>/examples/**</exclude>
+                </excludes>
+                <classifier>native-image</classifier>
                 <archive>
                   <manifestEntries>
                     <Multi-Release>true</Multi-Release>
@@ -734,6 +754,19 @@
                 <additionalClasspathElement>${project.basedir}/src/test/classpath/customcontextlocal</additionalClasspathElement>
               </additionalClasspathElements>
             </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>native-image-jar</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>

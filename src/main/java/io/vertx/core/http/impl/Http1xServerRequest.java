@@ -86,12 +86,14 @@ public class Http1xServerRequest extends HttpServerRequestInternal implements io
   // Cache this for performance
   private Charset paramsCharset = StandardCharsets.UTF_8;
   private MultiMap params;
+  private boolean semicolonIsNormalCharInParams;
   private MultiMap headers;
   private String absoluteURI;
 
   private HttpEventHandler eventHandler;
   private Handler<HttpServerFileUpload> uploadHandler;
   private MultiMap attributes;
+  private boolean expectMultipart;
   private HttpPostRequestDecoder decoder;
   private boolean ended;
   private long bytesRead;
@@ -149,7 +151,7 @@ public class Http1xServerRequest extends HttpServerRequestInternal implements io
         conn.doPause();
       }
     } else {
-      context.execute(buffer, this::onData);
+      onData(buffer);
     }
   }
 
@@ -310,9 +312,10 @@ public class Http1xServerRequest extends HttpServerRequestInternal implements io
   }
 
   @Override
-  public MultiMap params() {
-    if (params == null) {
-      params = HttpUtils.params(uri(), paramsCharset);
+  public MultiMap params(boolean semicolonIsNormalChar) {
+    if (params == null || semicolonIsNormalChar != semicolonIsNormalCharInParams) {
+      params = HttpUtils.params(uri(), paramsCharset, semicolonIsNormalChar);
+      semicolonIsNormalCharInParams = semicolonIsNormalChar;
     }
     return params;
   }
@@ -483,6 +486,7 @@ public class Http1xServerRequest extends HttpServerRequestInternal implements io
   public HttpServerRequest setExpectMultipart(boolean expect) {
     synchronized (conn) {
       checkEnded();
+      expectMultipart = expect;
       if (expect) {
         if (decoder == null) {
           String contentType = request.headers().get(HttpHeaderNames.CONTENT_TYPE);
@@ -510,10 +514,8 @@ public class Http1xServerRequest extends HttpServerRequestInternal implements io
   }
 
   @Override
-  public boolean isExpectMultipart() {
-    synchronized (conn) {
-      return decoder != null;
-    }
+  public synchronized boolean isExpectMultipart() {
+    return expectMultipart;
   }
 
   @Override
