@@ -1574,6 +1574,20 @@ public class JsonObjectTest {
     assertNumberNotEquals(4f, 5f);
     assertNumberNotEquals(4f, 5D);
     assertNumberNotEquals(4D, 5D);
+    assertNumberEquals(2f, 2);
+    assertNumberEquals(2D, 2);
+    assertNumberNotEquals(2.3D, 2);
+    assertNumberNotEquals(2.3f, 2);
+    assertNumberEquals(2, new BigDecimal(2));
+    assertNumberEquals(new BigDecimal(2), 2);
+    assertNumberEquals(2D, new BigDecimal(2));
+    assertNumberEquals(new BigDecimal(2), 2D);
+    assertNumberEquals(2, BigInteger.valueOf(2));
+    assertNumberEquals(BigInteger.valueOf(2), 2);
+    assertNumberEquals(2D, BigInteger.valueOf(2));
+    assertNumberEquals(BigInteger.valueOf(2), 2D);
+    assertNumberEquals(BigInteger.valueOf(2), new BigDecimal(2));
+    assertNumberEquals(new BigDecimal(2), BigInteger.valueOf(2));
   }
 
   private void assertNumberEquals(Number value1, Number value2) {
